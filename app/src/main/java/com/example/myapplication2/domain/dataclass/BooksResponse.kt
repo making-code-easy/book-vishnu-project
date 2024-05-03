@@ -1,9 +1,8 @@
 package com.example.myapplication2.domain.dataclass
 
+import com.google.gson.annotations.SerializedName
+
 data class BooksResponse(
-    val copyright: String,
-    val last_modified: String,
-    val num_results: Int,
-    val results: Results,
-    val status: String
+    @SerializedName("results")
+    val results: Results
 )

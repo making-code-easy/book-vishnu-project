@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    id("kotlin-kapt")
 }
 
 android {
@@ -33,6 +34,10 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
+    buildFeatures{
+        viewBinding =  true
+    }
 }
 
 dependencies {
@@ -44,6 +49,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1-Beta")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    kapt("com.google.dagger:dagger-compiler:2.51")
+    implementation("com.google.dagger:dagger:2.51")
+    annotationProcessor("com.google.dagger:dagger-compiler:2.51")
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)

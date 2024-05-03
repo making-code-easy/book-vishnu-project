@@ -4,12 +4,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.myapplication2.R
+import com.example.myapplication2.databinding.LayoutItemBinding
 import com.example.myapplication2.domain.dataclass.Book
 
 class BooksAdapter(diffUtil: DiffUtil.ItemCallback<Book>) :
@@ -17,10 +17,16 @@ class BooksAdapter(diffUtil: DiffUtil.ItemCallback<Book>) :
 
     inner class BookViewHolder(private val view: View) : RecyclerView.ViewHolder(view) {
 
+        private val binding = LayoutItemBinding.bind(itemView)
+
         fun bind(item: Book) {
-            view.findViewById<TextView>(R.id.title).text = item.title
-            view.findViewById<TextView>(R.id.description).text = item.description
-            loadImage(item.imageUrl, view.findViewById<ImageView>(R.id.image))
+
+            binding.apply {
+                title.text = item.title
+                description.text = item.description
+                loadImage(item.imageUrl, image)
+
+            }
         }
     }
 
@@ -40,16 +46,5 @@ class BooksAdapter(diffUtil: DiffUtil.ItemCallback<Book>) :
 
     override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
         holder.bind(getItem(position))
-    }
-
-    class diffutilCallback : DiffUtil.ItemCallback<Book>() {
-        override fun areItemsTheSame(oldItem: Book, newItem: Book): Boolean {
-            return oldItem === newItem
-        }
-
-        override fun areContentsTheSame(oldItem: Book, newItem: Book): Boolean {
-            return oldItem == newItem
-        }
-
     }
 }

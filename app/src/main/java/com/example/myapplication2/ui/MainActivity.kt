@@ -1,30 +1,84 @@
 package com.example.myapplication2.ui
 
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication2.R
+import com.example.myapplication2.MainApplication
+import com.example.myapplication2.databinding.ActivityMainBinding
+import com.example.myapplication2.di.component.DaggerAppComponent
+import com.example.myapplication2.di.factory.ViewModelProviderFactory
+import com.example.myapplication2.ui.diffutils.DiffUtilCallBack
+import com.example.myapplication2.ui.uistate.UIState
+import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
-    private var recyclerView:RecyclerView? = null
+
+    private val viewBinding: ActivityMainBinding by lazy {
+        ActivityMainBinding.inflate(
+            LayoutInflater.from(this)
+        )
+    }
+
+    @Inject
+    lateinit var viewModelProviderFactory: ViewModelProviderFactory
+    private lateinit var viewModel: BooksViewModel
+    private val myAdapter: BooksAdapter by lazy {
+        BooksAdapter(DiffUtilCallBack())
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(viewBinding.root)
+        initInjection()
+        setUpViewModel()
+        setUpView()
+        setUpObserver()
 
-        recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
+    }
 
-        val adapter = BooksAdapter(BooksAdapter.diffutilCallback())
-        recyclerView?.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
-        recyclerView?.adapter = adapter
+    private fun initInjection() {
+        application.let { application ->
+            DaggerAppComponent.builder()
+                .baseAppComponent((application as MainApplication).getBaseComponent()).build()
+                .inject(this)
+        }
+    }
 
-        val viewModel = ViewModelProvider(this)[BooksViewModel::class.java]
-
+    private fun setUpViewModel() {
+        viewModel = ViewModelProvider(this, viewModelProviderFactory)[BooksViewModel::class.java]
         viewModel.getBooks()
+    }
 
-        viewModel.books.observe(this){
-            adapter.submitList(it)
+
+    private fun setUpView() {
+        viewBinding.recyclerView.run {
+            layoutManager =
+                LinearLayoutManager(this@MainActivity)
+            this.adapter = myAdapter
+        }
+    }
+
+    private fun setUpObserver() {
+        viewModel.books.observe(this) {
+            when (it) {
+                is UIState.Success -> {
+                    myAdapter.submitList(it.data)
+                    viewBinding.loader.visibility = View.GONE
+                }
+
+                is UIState.Fail -> {
+                    Toast.makeText(this, it.throwable.message, Toast.LENGTH_SHORT).show()
+                    viewBinding.loader.visibility = View.GONE
+                }
+
+                is UIState.Loading -> {
+                    viewBinding.loader.visibility = View.VISIBLE
+                }
+            }
         }
     }
 }
